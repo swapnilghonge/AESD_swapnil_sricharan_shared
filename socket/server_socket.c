@@ -1,3 +1,6 @@
+//Author: swapnil Ghonge
+// Ref: https://www.geeksforgeeks.org/socket-programming-cc/
+
 #include <stdio.h>
 #include <netdb.h>
 #include <netinet/in.h>
