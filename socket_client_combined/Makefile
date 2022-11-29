@@ -1,24 +1,34 @@
+CROSS_COMPILE=
+
 ifeq ($(CC),)
-	CC = $(CROSS_COMPILE)gcc
+	CC=$(CROSS_COMPILE)gcc
 endif
+
 ifeq ($(CFLAGS),)
-	CFLAGS = -g -Wall -Werror
+	CFLAGS= -g -Wall -Werror
 endif
+
 ifeq ($(LDFLAGS),)
-	LDFLAGS = -pthread -lrt
+	LDFLAGS= -lrt
 endif
-all:server_socket client
-default: server_socket client
 
-clean:
-	rm -f *.o server_socket *.elf *.map
-	rm -f *.o client *.elf *.map
+all: servertest clienttest
+default: servertest clienttest
 
-aesdsocket: aesdsocket.c
-	#$(CC) $(CFLAGS)  -c -o aesdsocket.o aesdsocket.c
-	#$(CC) $(CFLAGS) -I/ aesdsocket.o -o aesdsocket
-	$(CC) $(CFLAGS) $^ -o $@ $(INCLUDES) $(LDFLAGS)
+servertest : server_socket.o
+	$(CROSS_COMPILE)$(CC) $(CFLAGS) -o server_test server_socket.o $(LDFLAGS)
 	
+clienttest : client.o
+	$(CROSS_COMPILE)$(CC) $(CFLAGS) -o client_test client.o $(LDFLAGS)
+
+server_socket.o : server_socket.c
+	$(CROSS_COMPILE)$(CC) $(CFLAGS) -c server_socket.c $(LDFLAGS)
+
+clienttest.o : clienttest.c
+	$(CROSS_COMPILE)$(CC) $(CFLAGS) -c client.c $(LDFLAGS)
+	
+clean :
+	rm -f servertest clienttest *.o
 
 	
 
