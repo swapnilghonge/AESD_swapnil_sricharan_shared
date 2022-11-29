@@ -10,7 +10,7 @@ endif
 all:client
 
 clean:
-	rm -f *.o server_socket *.elf *.map
+	rm -f *.o client *.elf *.map
 
 client: client.c
 	#$(CC) $(CFLAGS)  -c -o client.o client.c
