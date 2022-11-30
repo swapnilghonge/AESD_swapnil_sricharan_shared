@@ -12,7 +12,7 @@ all:client
 clean:
 	rm -f *.o client *.elf *.map
 
-client: client.c
+client: client.o
 	#$(CC) $(CFLAGS)  -c -o client.o client.c
 	#$(CC) $(CFLAGS) -I/ client.o -o client
 	$(CC) $(CFLAGS) $^ -o $@ $(INCLUDES) $(LDFLAGS)
