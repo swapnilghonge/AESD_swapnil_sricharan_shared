@@ -1,13 +1,17 @@
-//
+/*
+ * Reference: https://github.com/jimstudt/dht11-pigpio/blob/master/dht11-pigpio.c
+ * Edited by: Darshit Agrawal
+*/
+
 // Copyright 2018, Jim Studt jim@studt.net
 // SPDX-License-Identifier: BSD-3-Clause
-//
 
 #include <pigpio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <limits.h>
+#include <signal.h>
 
 // Maybe you want to pass this in on the compile command?
 // NOTE: This is the Broadcom pin number, not the Wiring pin number
@@ -17,6 +21,7 @@
 
 static unsigned cleanupPin = UINT_MAX;
 static bool verbose = false;
+bool signal_indication = false;
 
 int read_dht11( unsigned pin) {
     // set pin to output, we keep it at LOW all the time and use the pullup.
@@ -33,7 +38,9 @@ int read_dht11( unsigned pin) {
 
 
 
-static void cleanup(void) {
+gpioSignalFunc_t cleanup(void) {
+
+    signal_indication = true;
     // This gets registered with atexit() to run at program termination.
     // Be aware that there are signals which will kill us too dead to run
     // this function, so you might leave a pin turned on.
@@ -41,6 +48,7 @@ static void cleanup(void) {
     
     if ( cleanupPin != UINT_MAX) gpioSetPullUpDown( cleanupPin, PI_PUD_OFF);
     gpioTerminate();
+    exit(0);
 }
 
 enum pulse_state { PS_IDLE = 0, PS_PREAMBLE_STARTED, PS_DIGITS };
@@ -126,8 +134,10 @@ int main( int argc, char **argv) {
 	exit(EXIT_FAILURE);
     }
 
+    gpioSetSignalFunc(SIGINT, cleanup);
+    
     // Make sure we turn off gpio on our way out
-    atexit(cleanup);
+    //atexit(cleanup);
     
     // set pin to have a pullup resistor
     gpioSetMode( pin, PI_INPUT);
@@ -141,7 +151,9 @@ int main( int argc, char **argv) {
     gpioSetAlertFunc( pin, pulse_reader);
     
     // Repeat until tired
-    for (int i = 0; i < 50; i++) {
+    //for (int i = 0; i < 50; i++) {
+    while(!signal_indication)
+    {
 
 	// This just initiates the reading and returns, it will take around 20ms.
 	// The actual reading takes place in the pulse_reader alert function in a

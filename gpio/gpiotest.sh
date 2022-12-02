@@ -94,7 +94,7 @@ usage
 
 v=$(pigs hwver)
 
-if [[ $v < 0 ]]
+if [[ $v < 0 ]];
 then
    echo "The pigpio daemon wasn't found.  Did you sudo pigpiod?"
    exit
