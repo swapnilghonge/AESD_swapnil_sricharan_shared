@@ -12,14 +12,14 @@ ifeq ($(LIBS),)
 	LIBS= -lrt -lpthread -lpigpio
 endif
 
-all: humiditytest
-default: humiditytest
+all: humidity
+default: humidity
 
-humiditytest : humidity.o 
-	$(CROSS_COMPILE)$(CC) $(CFLAGS) -o humiditytest humidity.o $(LIBS)
+humidity : humidity.o 
+	$(CROSS_COMPILE)$(CC) $(CFLAGS) -o humidity humidity.o $(LIBS)
 
 humidity.o : humidity.c
 	$(CROSS_COMPILE)$(CC) $(CFLAGS) -c humidity.c $(LIBS)
 
 clean :
-	rm -f humiditytest *.o
+	rm -f humidity *.o
