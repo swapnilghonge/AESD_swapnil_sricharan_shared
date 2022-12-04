@@ -8,13 +8,13 @@ ifeq ($(LDFLAGS),)
 	LDFLAGS = -pthread -lrt
 endif
 
-default: tmp102
+default: tmp
 
-all : tmp102
+all : tmp
 
-tmp102: tmp102.o
+tmp102: tmp.o
 	$(CC) $(CFLAGS) $^ -o $@ $(INCLUDES) $(LDFLAGS)
 
 clean: 
-	-rm -f *.o tmp102
+	-rm -f *.o tmp
 	
