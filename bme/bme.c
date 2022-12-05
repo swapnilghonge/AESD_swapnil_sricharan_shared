@@ -12,6 +12,7 @@ int main()
 	if((file = open(bus, O_RDWR)) < 0) 
 	{
 		printf("Failed to open the bus. \n");
+		printf("value of file %d",file);
 		exit(1);
 	}
 	// Get I2C device, BME280 I2C address is 0x76(136)
