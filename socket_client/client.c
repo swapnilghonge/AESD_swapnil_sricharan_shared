@@ -1,4 +1,4 @@
-#include <arpa/inet.h> // inet_addr
+#include <arpa/inet.h> // inet_addr()
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,7 +6,7 @@
 #include <strings.h> // bzero()
 #include <sys/socket.h>
 #include <unistd.h> // read(), write(), close()
-#define MAX 80	//MAX no of characters to send
+#define MAX 80
 #define PORT 8080
 #define SA struct sockaddr
 void func(int sockfd)
@@ -17,7 +17,8 @@ void func(int sockfd)
 		bzero(buff, sizeof(buff));
 		printf("Enter the string : ");
 		n = 0;
-		while ((buff[n++] = getchar()) != '\n');
+		while ((buff[n++] = getchar()) != '\n')
+			;
 		write(sockfd, buff, sizeof(buff));
 		bzero(buff, sizeof(buff));
 		read(sockfd, buff, sizeof(buff));
@@ -28,6 +29,7 @@ void func(int sockfd)
 		}
 	}
 }
+
 int main()
 {
 	int sockfd;
@@ -42,13 +44,15 @@ int main()
 	else
 		printf("Socket successfully created..\n");
 	bzero(&servaddr, sizeof(servaddr));
+
 	// assign IP, PORT
 	servaddr.sin_family = AF_INET;
 	servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 	servaddr.sin_port = htons(PORT);
 
 	// connect the client socket to server socket
-	if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr))!= 0) {
+	if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr))
+		!= 0) {
 		printf("connection with the server failed...\n");
 		exit(0);
 	}
@@ -61,3 +65,4 @@ int main()
 	// close the socket
 	close(sockfd);
 }
+
