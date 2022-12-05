@@ -13,8 +13,8 @@ clean:
 	rm -f *.o client *.elf *.map
 
 client: client.o
-	#$(CC) $(CFLAGS)  -c -o client.o client.c
-	#$(CC) $(CFLAGS) -I/ client.o -o client
+	#$(CC) $(CFLAGS)  -c -o aesdsocket.o aesdsocket.c
+	#$(CC) $(CFLAGS) -I/ aesdsocket.o -o aesdsocket
 	$(CC) $(CFLAGS) $^ -o $@ $(INCLUDES) $(LDFLAGS)
 	
 
