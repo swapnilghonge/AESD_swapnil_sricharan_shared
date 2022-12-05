@@ -1,4 +1,4 @@
-#include <arpa/inet.h> // inet_addr()
+#include <arpa/inet.h> // inet_addr
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
