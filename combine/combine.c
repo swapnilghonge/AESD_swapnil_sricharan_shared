@@ -44,7 +44,7 @@ int file;
 	
 	final_temp = temp * 0.0625; 
 	
-	printf("temperature in celsius %dC", final_temp ); 
+	printf("temperature in celsius %dC\n", final_temp ); 
 }
 
 void read_bme()
