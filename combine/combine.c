@@ -1,64 +1,67 @@
-#include <stdio.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/ioctl.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <mqueue.h>
-#include <errno.h>
-#include <signal.h>
-#include <linux/i2c-dev.h>
-int enable_i2c_bus_for_both_devices(){
-	int file;
+#include<stdio.h>
+#include<stdlib.h>
+#include<linux/i2c-dev.h>
+#include<sys/ioctl.h>
+#include<fcntl.h>
+#include<unistd.h>
+
+void read_tmp()
+{
+int file;
 	char *bus = "/dev/i2c-1";
+
 	if((file = open(bus, O_RDWR)) < 0)
 	{
 		printf("error to read bus\n");
 		exit(1);
 	}
+	
+	
 	ioctl(file, I2C_SLAVE, 0x48);
-	ioctl(file, I2C_SLAVE, 0x76);
-	return file;
-}
-void read_tmp(struct mq_attr attr, mqd_t mqd, int file)
-{
-	char tmp_buf[20];
+
+
 	char config[1] = {0};
 	config[0] = 0x00;
 	write(file, config, 1);
 	sleep(1);
-	int temp, final_temp;
+	
+	
 
+	int temp, final_temp;
+	
 	unsigned char read_data[2] = {0};
+	
 	
 	if(read(file, read_data, 2)!=2)
 	{
-		printf("Unable to read\n");
+		printf("Error in dataread\n");
 	}
 	else
 	{
 		temp = ((read_data[0] << 4 ) | ( read_data[1] >> 4)); 
-	}	
+	}
+	
+	
 	final_temp = temp * 0.0625; 
-
+	
 	printf("temperature in celsius %dC\n", final_temp ); 
-
-	memcpy(tmp_buf, &final_temp, sizeof(int));
-
-	if(mq_send(mqd,tmp_buf,sizeof(int),1) == -1)
-	{
-		printf("\n\rError in sending data via message 	queue. Error: %s", strerror(errno));
-	}	
 }
-void read_bme(struct mq_attr attr, mqd_t mqd, int file)
+
+void read_bme()
 {
-	char bme_buf[20];
+	// Create I2C bus
+	int file;
+	char *bus = "/dev/i2c-1";
+	if((file = open(bus, O_RDWR)) < 0) 
+	{
+		printf("Failed to open the bus. \n");
+		printf("value of file %d",file);
+		exit(1);
+	}
+	// Get I2C device, BME280 I2C address is 0x76(136)
+	ioctl(file, I2C_SLAVE, 0x76);
+
+	// Read 24 bytes of data from register(0x88)
 	char reg[1] = {0x88};
 	write(file, reg, 1);
 	char b1[24] = {0};
@@ -67,6 +70,7 @@ void read_bme(struct mq_attr attr, mqd_t mqd, int file)
 		printf("Error : Input/Output error \n");
 		exit(1);
 	}
+
 	// Convert the data
 	// temp coefficents
 	int dig_T1 = (b1[0] + b1[1] * 256);
@@ -136,34 +140,18 @@ void read_bme(struct mq_attr attr, mqd_t mqd, int file)
 	var_H = (adc_h - (dig_H4 * 64.0 + dig_H5 / 16384.0 * var_H)) * (dig_H2 / 65536.0 * (1.0 + dig_H6 / 67108864.0 * var_H * (1.0 + dig_H3 / 67108864.0 * var_H)));
 	float humidity = var_H * (1.0 -  dig_H1 * var_H / 524288.0);
 	humidity = humidity > 100.0?100.0:humidity;
-	
 	humidity = humidity < 0.0?0.0:humidity;
 	// Output data to screen
 	printf("Relative Humidity : %.2f RH \n", humidity);
-	
-	memcpy(bme_buf, &humidity, sizeof(float));
-	if(mq_send(mqd,bme_buf,sizeof(float),1)== -1)
-	{
-		printf("\n\rError in sending data via message queue. Error: %s", strerror(errno));
-    	}
 }
-
 int main()
 {
-	struct mq_attr attr;
-	mqd_t mqd;
-	attr.mq_maxmsg = 10;
-    	attr.mq_msgsize = sizeof(double) + sizeof(double);
-	mqd = mq_open("/sendmq", O_CREAT | O_RDWR, S_IRWXU, &attr);
-    	if(mqd == (mqd_t)-1)
-    	{
-        	printf("\n\rError in creating a message queue. Error: %s", strerror(errno));
-    	}
-    	int file = enable_i2c_bus_for_both_devices();
-	while(1)
-	{
-		read_tmp(attr,mqd,file);
-		read_bme(attr,mqd,file);
-	}
-	
+
+while(1)
+{
+	read_tmp();
+	read_bme();
+}
+
+
 }
