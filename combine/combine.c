@@ -4,7 +4,14 @@
 #include<sys/ioctl.h>
 #include<fcntl.h>
 #include<unistd.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <math.h>
+#include <stdbool.h>
+#include <mqueue.h>
 
+float humidity=0,final_temp=0;
+struct mq_attr attr;
 void read_tmp()
 {
 int file;
@@ -27,7 +34,7 @@ int file;
 	
 	
 
-	int temp, final_temp;
+	float temp;
 	
 	unsigned char read_data[2] = {0};
 	
@@ -44,7 +51,7 @@ int file;
 	
 	final_temp = temp * 0.0625; 
 	
-	printf("temperature in celsius %dC\n", final_temp ); 
+	printf("temperature in celsius %fC\n", final_temp ); 
 }
 
 void read_bme()
@@ -138,19 +145,36 @@ void read_bme()
 	// Humidity offset calculations
 	float var_H = (((float)t_fine) - 76800.0);
 	var_H = (adc_h - (dig_H4 * 64.0 + dig_H5 / 16384.0 * var_H)) * (dig_H2 / 65536.0 * (1.0 + dig_H6 / 67108864.0 * var_H * (1.0 + dig_H3 / 67108864.0 * var_H)));
-	float humidity = var_H * (1.0 -  dig_H1 * var_H / 524288.0);
+	humidity = var_H * (1.0 -  dig_H1 * var_H / 524288.0);
 	humidity = humidity > 100.0?100.0:humidity;
 	humidity = humidity < 0.0?0.0:humidity;
 	// Output data to screen
 	printf("Relative Humidity : %.2f RH \n", humidity);
 }
-int main()
+int main(int argc , char **argv)
 {
+mqd_t mqd;
+    char buff[sizeof(float) + sizeof(float) +50]; //buffer to send data on the message queue
+    attr.mq_maxmsg = 10;   //Maximum number of messages on the queue
+    attr.mq_msgsize = sizeof(int) + sizeof(int) + sizeof(int) +13;
+    
+    mqd = mq_open("/sendmq", O_CREAT | O_RDWR, S_IRWXU, &attr); //open a named message queue
+    
+    if(mqd == (mqd_t)-1) {
+        printf("\nError: Message queue creat failed");
+    }
+
 
 while(1)
 {
 	read_tmp();
 	read_bme();
+	//snprintf(buff, sizeof(buff), "roll%d Temp%d Tyre%d", (int)roll, (int)temp, (int)station_press);
+	snprintf(buff, sizeof(buff), "temperature %f Humidity %f" , final_temp, humidity);
+	if (mq_send(mqd, buff, sizeof(int) + sizeof(int) + sizeof(int) + 13, 1) == -1) {
+    		perror("\nmq_send");
+    	}
+    	sleep(2);
 }
 
 

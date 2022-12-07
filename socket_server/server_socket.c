@@ -11,15 +11,15 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <errno.h>
-#include <signal.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
 #include <mqueue.h>
 
 #define MAX 80
@@ -30,109 +30,79 @@
 
 struct mq_attr attr;
 mqd_t mqd;
-int sockfd, connfd;
-bool signal_indication = false;
 
-void send_data(int connfd)
+void send_data(int cli_fd)
 {
-	int bytes_sent, package_count = 1;
-    	char temp_buff[20];
-    	char bme_buff[20];
-    	char toClient[50];
-    	unsigned int priority;
-    	int temperature_data, humidity_data;
-  
-	    while(1) 
-	    {
-		if(mq_receive(mqd, temp_buff, sizeof(int), &priority) == -1)
-		{
-		    printf("\n\rError in receiving message %s", strerror(errno));
-		}
-		memcpy(&temperature_data, temp_buff, sizeof(int));
-		
-		if(mq_receive(mqd, bme_buff, sizeof(int), &priority) == -1)
-		{
-		    printf("\n\rError in receiving message %s", strerror(errno));
-		}
-		memcpy(&humidity_data, bme_buff + sizeof(double), sizeof(double));
+	char buff[sizeof(int) + sizeof(int) + sizeof(int) + 13];
+ 	unsigned int priority;
+	// infinite loop to send data every 2 seconds to the client from the server after sensor data over message queue
+	while(1) {
 	
-
-		sprintf(toClient, "Temperature = %d and Humidity = %d", temperature_data, humidity_data);
-		
-		bytes_sent = send(connfd, toClient, strlen(toClient) + 1, 0);
-		if(bytes_sent == -1)
-		{
-		    printf("\n\rError in sending bytes.");
-		    return;
+		if(mq_receive(mqd, buff, 1024, &priority) == -1) { //Obtain sensor data over message queue
+		    printf("\nERROR: mq_receive failed");
 		}
+   		 printf("\nserver-%s", buff);    	
+		 write(cli_fd, buff, sizeof(buff)); //Send data to client
 
-		package_count++;
-    	    }
+	}
 }
 int main()
 {
-	int len;
-    	struct sockaddr_in servaddr, cli;
-    	   
+	int sockfd, connfd, len;
+	struct sockaddr_in servaddr, cli;
+
+	// socket create and verification
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd == -1) 
 	{
-		printf("\n\rsocket creation failed. Error: %s", strerror(errno));
-		return -1;
-	}
-	else
-	{
-		printf("Socket successfully created..\n");
-	} 
-	if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &(int){1}, sizeof(int)) == -1)
-	{
-		printf("\n\rError in setting up socket options. Error: %s", strerror(errno));
-		return -1;
-	}
-	bzero(&servaddr, sizeof(servaddr));    
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	servaddr.sin_port = htons(PORT);
-	if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0)
-	{
-	printf("\n\rsocket bind failed. Error: %s", strerror(errno));
-	exit(0);
-	}
-	else
-	{
-		printf("Socket successfully binded..\n");
-	}
-
-	if ((listen(sockfd, 5)) != 0) 
-	{
-		printf("\n\rListen failed. Error: %s", strerror(errno));
+		printf("socket creation failed...\n");
 		exit(0);
 	}
 	else
-	{
-		printf("Server listening..\n");
-		len = sizeof(cli);
+	printf("Socket successfully created..\n");
+	bzero(&servaddr, sizeof(servaddr));
+
+	// assign IP, PORT
+	servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	servaddr.sin_port = htons(PORT);
+
+	// Binding newly created socket to given IP and verification
+	if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0) 		 			{
+		printf("socket bind failed...\n");
+		exit(0);
 	}
-	mqd = mq_open("/sendmq", O_RDWR);
-	if(mqd == -1)
-	{
-		printf("\n\rError in opening the message queue. Error: %s", strerror(errno));
+	else
+		printf("Socket successfully binded..\n");
+
+	// Now server is ready to listen and verification
+	if ((listen(sockfd, 5)) != 0) {
+		printf("Listen failed...\n");
+		exit(0);
 	}
-	while(signal_indication == false)
-	{
-		connfd = accept(sockfd, (SA*)&cli, (socklen_t*)&len);
-		if (connfd < 0) 
-		{
-			printf("\n\rserver accept failed. Error: %s", strerror(errno));
-			exit(0);
-		}
-		else
-		{
-	    		printf("server accept the client...\n");
-		}
-		send_data(connfd);
+	else
+		printf("Server listening...\n");
+	len = sizeof(cli);
+
+	// Accept the data packet from client and verification
+	connfd = accept(sockfd, (SA*)&cli, (socklen_t*)&len);
+	if (connfd < 0) {
+		printf("server accept failed...\n");
+		exit(0);
 	}
+	
+	printf("Accepted connection from %s", inet_ntoa(cli.sin_addr) );
+
+  	mqd = mq_open("/sendmq", O_RDWR);  
+    	
+    	if(mqd == -1) {
+      	  printf("\nERROR: mq_open failed");
+    	}
+    	
+	sleep(1);
+	send_data(connfd); //Send data from server to client
+
+
 	close(sockfd);
-	close(connfd);
-	printf("\r\n connection closed");
 }
+
