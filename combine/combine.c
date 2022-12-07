@@ -164,7 +164,7 @@ int main()
 	while(i--)
 	{
 		read_tmp(attr,mqd,file);
-		read_bme(attr,mqd,file);
+		//read_bme(attr,mqd,file);
 	}
 	
 }
