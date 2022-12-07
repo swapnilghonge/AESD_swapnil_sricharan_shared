@@ -27,9 +27,9 @@ int main()
 		exit(1);
 	}
 	mqd_t mqd;
-    	char sensor_buffer[sizeof(float)+sizeof(float)+20] = {0};
+    	char sensor_buffer[sizeof(int)+sizeof(int)+20] = {0};
     	attr.mq_maxmsg = 10;
-    	attr.mq_msgsize = (sizeof(float)+sizeof(float)+40);
+    	attr.mq_msgsize = (sizeof(int)+sizeof(int)+40);
     	mqd = mq_open("/sendmq", O_CREAT | O_RDWR, S_IRWXU, &attr);
     	if(mqd == (mqd_t)-1)
     	{
@@ -150,10 +150,12 @@ int main()
 	humidity = humidity > 100.0?100.0:humidity;
 	humidity = humidity < 0.0?0.0:humidity;
 	// Output data to screen
-	memcpy(sensor_buffer, &final_temp, sizeof(float));
-	memcpy(sensor_buffer + sizeof(float), &humidity, sizeof(float));
+	int f_humidity = (int)humidity;
+	int f_temp = (int)final_temp;
+	memcpy(sensor_buffer, &f_humidity, sizeof(int));
+	memcpy(sensor_buffer + sizeof(int), &f_temp, sizeof(int));
 	printf("sensor_buffer value = %s",sensor_buffer);
-	if(mq_send(mqd, sensor_buffer, (sizeof(float)+sizeof(float)), 1) == -1)
+	if(mq_send(mqd, sensor_buffer, (sizeof(int)+sizeof(int)), 1) == -1)
     	{
     	    printf("\n\rError in sending data via message queue. Error: %s", strerror(errno));
     	}
