@@ -150,9 +150,6 @@ int main()
 	humidity = humidity > 100.0?100.0:humidity;
 	humidity = humidity < 0.0?0.0:humidity;
 	// Output data to screen
-	printf("Temperature : %.2f C \n", final_temp);
-	printf("Relative Humidity : %.2f RH \n", humidity);
-	
 	memcpy(sensor_buffer, &final_temp, sizeof(float));
 	memcpy(sensor_buffer + sizeof(float), &humidity, sizeof(float));
 	printf("sensor_buffer value = %s",sensor_buffer);
