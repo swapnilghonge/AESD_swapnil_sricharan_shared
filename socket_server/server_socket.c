@@ -70,20 +70,23 @@ static void signal_handler(int signal)
 void func(int connfd)
 {
     int bytes_sent, package_count = 1;
-    char buff[1024];
-    char toClient[50];
+    char buff[sizeof(int)] = {0};
+    char toClient[50] = {0};
     unsigned int priority;
-    float temperature_data;
-    // infinite loop for chat
+    int temperature_data;//,humidity_data;
     while(1) 
     {
-	if(mq_receive(mqd, buff, sizeof(float), &priority) == -1)
+	if(mq_receive(mqd, buff, sizeof(int), &priority) == -1)
 	{
 	    printf("\n\rError in receiving message from the queue. Error: %s", strerror(errno));
 	}
-	memcpy(&temperature_data, buff, sizeof(float));
+	printf("\r\n Message Received");
+	memcpy(&temperature_data, buff, sizeof(int));
+	//memcpy(&humidity_data, buff + sizeof(double), sizeof(double));
 	
-	sprintf(toClient, "Temperature = %0.2lf", temperature_data);
+	sprintf(toClient, "Temperature = %d", temperature_data);
+	memset(buff,0,sizeof(buff));
+	//sprintf(toClient, "Humidity = %0.2lf", humidity_data);
 	if(signal_indication)
 	{
 	    break;
@@ -182,7 +185,7 @@ int main()
         }
         else
         {
-	    printf("server accept the client...\n");
+	    printf("\r\nserver accept the client...");
         }
     // Function for chatting between client and server
         func(connfd);
