@@ -22,12 +22,12 @@
 void func(int sockfd)
 {
 	printf("values");
-    char buff[100];
+    char buff[200];
     int rv;
     //int n;
     while(1) 
     {
-        while((rv = recv(sockfd, buff, sizeof(buff), 0)) != 100);
+        while((rv = recv(sockfd, buff, sizeof(buff), 0)) != 200);
         if(rv == -1)
         {
             printf("\n\rError: %s", strerror(errno));

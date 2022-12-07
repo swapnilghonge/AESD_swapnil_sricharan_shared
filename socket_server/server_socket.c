@@ -73,7 +73,7 @@ void func(int connfd)
     char buff[1024];
     char toClient[50];
     unsigned int priority;
-    float temperature_data;
+    float temperature_data,humidity_data;
     // infinite loop for chat
     while(1) 
     {
@@ -82,8 +82,10 @@ void func(int connfd)
 	    printf("\n\rError in receiving message from the queue. Error: %s", strerror(errno));
 	}
 	memcpy(&temperature_data, buff, sizeof(float));
+	memcpy(&humidity_data, buff + sizeof(float), sizeof(float));
 	
 	sprintf(toClient, "Temperature = %0.2lf", temperature_data);
+	sprintf(toClient, "Humidity = %0.2lf", humidity_data);
 	if(signal_indication)
 	{
 	    break;
