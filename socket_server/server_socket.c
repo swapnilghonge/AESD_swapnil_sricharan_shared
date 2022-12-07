@@ -77,7 +77,7 @@ void func(int connfd)
     // infinite loop for chat
     while(1) 
     {
-	if(mq_receive(mqd, buff, sizeof(float) + sizeof(float), &priority) == -1)
+	if(mq_receive(mqd, buff, sizeof(float), &priority) == -1)
 	{
 	    printf("\n\rError in receiving message from the queue. Error: %s", strerror(errno));
 	}

@@ -166,9 +166,9 @@ int main()
 		exit(1);
 	}
 	mqd_t mqd;
-    	char sensor_buffer[1024];
+    	char sensor_buffer[sizeof(float)];
     	attr.mq_maxmsg = 10;
-    	attr.mq_msgsize = sizeof(double) + sizeof(double);
+    	attr.mq_msgsize = sizeof(float);
     	mqd = mq_open("/sendmq", O_CREAT | O_RDWR, S_IRWXU, &attr);
     	if(mqd == (mqd_t)-1)
     	{
@@ -205,7 +205,7 @@ while(1)
 	printf("temperature in celsius %f C\n", final_temp ); 
 	
 	memcpy(sensor_buffer, &final_temp, sizeof(float));
-	if(mq_send(mqd, sensor_buffer, sizeof(float) + sizeof(float), 1) == -1)
+	if(mq_send(mqd, sensor_buffer, sizeof(float), 1) == -1)
     	{
     	    printf("\n\rError in sending data via message queue. Error: %s", strerror(errno));
     	}
