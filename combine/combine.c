@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <linux/i2c-dev.h>
+
 int enable_i2c_bus_for_both_devices(){
 	int file;
 	char *bus = "/dev/i2c-1";
@@ -33,7 +34,7 @@ void read_tmp(struct mq_attr attr, mqd_t mqd, int file)
 	config[0] = 0x00;
 	write(file, config, 1);
 	sleep(1);
-	int temp, final_temp;
+	float temp, final_temp;
 
 	unsigned char read_data[2] = {0};
 	
@@ -44,13 +45,14 @@ void read_tmp(struct mq_attr attr, mqd_t mqd, int file)
 	else
 	{
 		temp = ((read_data[0] << 4 ) | ( read_data[1] >> 4)); 
-	}	
+	}
+		
 	final_temp = temp * 0.0625; 
 
-	printf("temperature in celsius %dC\n", final_temp ); 
+	//printf("temperature in celsius %dC\n", final_temp ); 
 
-	memcpy(tmp_buf, &final_temp, sizeof(int));
-
+	sprintf(tmp_buf," tmp %f" ,final_temp);
+	
 	if(mq_send(mqd,tmp_buf,sizeof(int),1) == -1)
 	{
 		printf("\n\rError in sending data via message 	queue. Error: %s", strerror(errno));
@@ -155,16 +157,17 @@ int main()
 	attr.mq_maxmsg = 10;
     	attr.mq_msgsize = sizeof(double) + sizeof(double);
 	mqd = mq_open("/sendmq", O_CREAT | O_RDWR, S_IRWXU, &attr);
+	
     	if(mqd == (mqd_t)-1)
     	{
         	printf("\n\rError in creating a message queue. Error: %s", strerror(errno));
     	}
     	int file = enable_i2c_bus_for_both_devices();
-    	int i = 20;
-	while(i--)
-	{
+    	//int i = 20;
+	//while(i--)
+	//{
 		read_tmp(attr,mqd,file);
 		//read_bme(attr,mqd,file);
-	}
+	//}
 	
 }
