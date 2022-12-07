@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
     /*IP address and PORT */
     bzero(&servaddr, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = inet_addr(IP); 
+    servaddr.sin_addr.s_addr = inet_addr("10.0.0.184"); 
     servaddr.sin_port = htons(PORT);
     /*connect function to connect to server*/
     connfd = connect(sockfd, (SA*)&servaddr, sizeof(servaddr)); 
