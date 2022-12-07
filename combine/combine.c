@@ -29,7 +29,7 @@ int enable_i2c_bus_for_both_devices(){
 }
 void read_tmp(struct mq_attr attr, mqd_t mqd, int file)
 {
-	char tmp_buf[200];
+	char tmp_buf[20];
 	char config[1] = {0};
 	config[0] = 0x00;
 	write(file, config, 1);
@@ -50,8 +50,9 @@ void read_tmp(struct mq_attr attr, mqd_t mqd, int file)
 	final_temp = temp * 0.0625; 
 
 	printf("temperature in celsius %fC\n", final_temp ); 
-
-	sprintf(tmp_buf," tmp %f" ,final_temp);
+	
+	memcpy(tmp_buf, &final_temp, sizeof(double));
+	printf("message queue %s", tmp_buf);
 	
 	if(mq_send(mqd,tmp_buf,sizeof(int),1) == -1)
 	{
