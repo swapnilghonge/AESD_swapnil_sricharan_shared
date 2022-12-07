@@ -21,8 +21,8 @@
 
 void func(int sockfd)
 {
-	printf("debug 5");
-    char buff[1000];
+	printf("values");
+    char buff[100];
     int rv;
     //int n;
     while(1) 
@@ -33,7 +33,7 @@ void func(int sockfd)
             printf("\n\rError: %s", strerror(errno));
             return;
         }
-        printf("debug 6");
+       
         printf("\n\r%s", buff);
         printf("\n\r%d bytes were received", rv);
         if ((strncmp(buff, "exit", 4)) == 0) 
@@ -72,31 +72,24 @@ int main(int argc, char *argv[])
         printf("\n\rSocket creation successful!!");
     }
     
-    printf("debug 1");
+    printf("Starting ");
     bzero(&servaddr, sizeof(servaddr));
-   printf("debug 2");
+   printf("to");
     // assign IP, PORT
     servaddr.sin_family = AF_INET;
     //storing address of the server
     servaddr.sin_addr.s_addr = inet_addr("10.0.0.184"); 
     // short, network byte order
     servaddr.sin_port = htons(PORT);
-   printf("debug 3");
+   printf("display");
     // connect the client socket to server socket
     connfd = connect(sockfd, (SA*)&servaddr, sizeof(servaddr)); 
     printf("connfd = %d", connfd);
-    /*if (connfd == -1)
-    {
-        printf("\n\rconnection with the server failed. Error: %s", strerror(errno));
-        //printf("connfd = %d", connfd);
-        close(sockfd);
-        return -1;
-    }*/
     //else
     {
         printf("\n\rconnected to the server.");
     }
-   printf("debug 4");
+   printf("sensor");
     // function for chat
     func(sockfd);
    
