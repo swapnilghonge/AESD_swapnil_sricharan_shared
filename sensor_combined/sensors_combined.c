@@ -35,14 +35,15 @@ void calculate_temperature(int file){
 	printf("temperature in celsius %dC", final_temp );
 }
 void calculate_humidity(int file){
-	// Read 24 bytes of data from register(0x88)
 	char reg[1] = {0x88};
 	write(file, reg, 1);
 	char b1[24] = {0};
-	if(read(file, b1, 24) != 24) {
+	if(read(file, b1, 24) != 24)
+	{
 		printf("Error : Input/Output error \n");
 		exit(1);
 	}
+
 	// Convert the data
 	// temp coefficents
 	int dig_T1 = (b1[0] + b1[1] * 256);
@@ -121,4 +122,8 @@ int main()
 	int file = enable_I2c_bus();
 	calculate_temperature(file);
 	calculate_humidity(file);
+	while(1){
+		;
+	}
+	return 0;
 }
