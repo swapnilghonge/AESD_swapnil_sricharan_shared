@@ -21,10 +21,9 @@
 
 void func(int sockfd)
 {
-	printf("debug 5");
-    char buff[100];
+	
+    char buff[1000];
     int rv;
-    //int n;
     while(1) 
     {
         while((rv = recv(sockfd, buff, sizeof(buff), 0)) != 100);
@@ -33,15 +32,13 @@ void func(int sockfd)
             printf("\n\rError: %s", strerror(errno));
             return;
         }
-        printf("debug 6");
         printf("\n\r%s", buff);
-        printf("\n\r%d bytes were received", rv);
+        printf("\n\r%dbytes received", rv);
         if ((strncmp(buff, "exit", 4)) == 0) 
         {
-            printf("Client Exit...\n");
+            printf("Client Exit\n");
             break;
         }
-        //usleep(500000);
     }
 }
    
@@ -53,7 +50,7 @@ int main(int argc, char *argv[])
     
     if(argc != 2)
     {
-        printf("\n\rPlease enter correct number of arguments with IP Address of the server.");
+        printf("\n\rPlease enter correct IP");
         return -1;
     }
     printf("\n\rConnecting to the server.");
@@ -64,42 +61,25 @@ int main(int argc, char *argv[])
     // socket verification
     if (sockfd == -1) 
     {
-        printf("\n\rSocket creation failed!!Error: %s", strerror(errno));
+        printf("\n\rSocket failed to create Error: %s", strerror(errno));
         return -1;
     }
     else
     {
-        printf("\n\rSocket creation successful!!");
+        printf("\n\rSocket creation successful");
     }
     
-    printf("debug 1");
+    /*IP address and PORT */
     bzero(&servaddr, sizeof(servaddr));
-   printf("debug 2");
-    // assign IP, PORT
     servaddr.sin_family = AF_INET;
-    //storing address of the server
-    servaddr.sin_addr.s_addr = inet_addr("10.0.0.184"); 
-    // short, network byte order
+    servaddr.sin_addr.s_addr = inet_addr(IP); 
     servaddr.sin_port = htons(PORT);
-   printf("debug 3");
-    // connect the client socket to server socket
+    /*connect function to connect to server*/
     connfd = connect(sockfd, (SA*)&servaddr, sizeof(servaddr)); 
-    printf("connfd = %d", connfd);
-    /*if (connfd == -1)
-    {
-        printf("\n\rconnection with the server failed. Error: %s", strerror(errno));
-        //printf("connfd = %d", connfd);
-        close(sockfd);
-        return -1;
-    }*/
-    //else
-    {
-        printf("\n\rconnected to the server.");
-    }
-   printf("debug 4");
-    // function for chat
+    printf("\n\rconnected to the server");
+    
+    /*code for server and client talking*/
     func(sockfd);
-   
-    // close the socket
+    
     close(sockfd);
 }

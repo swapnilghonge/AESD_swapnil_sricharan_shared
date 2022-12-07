@@ -30,21 +30,21 @@
 struct mq_attr attr;
 mqd_t mqd;
 int sockfd, connfd;
-bool signal_indication = false;
+bool signal_indicate = false;
 
-void graceful_exit()
+void grace_exit()
 {
     int bytes_sent = send(connfd, "exit", strlen("exit") + 1, 0);
     if(bytes_sent == -1)
     {
-        printf("\n\rTermination signal to the client could not be sent. Error: %s", strerror(errno));
+        printf("\n\rTermination signal Error: %s", strerror(errno));
     }
     if(sockfd > -1)
     {
         int rv = shutdown(sockfd, SHUT_RDWR);
         if(rv)
         {
-            printf("\n\rError in shutdown. Error: %s", strerror(errno));
+            printf("\n\rShutdown Error: %s", strerror(errno));
         }
     }
 }
@@ -53,28 +53,28 @@ static void signal_handler(int signal)
     switch(signal)
     {
         case SIGINT:
-          printf("\n\rSIGINT Signal Detected.");
+          printf("\n\rSIGINT");
           break;
           
         case SIGTERM:
-          printf("\n\rSIGTERM Signal Detected.");
+          printf("\n\rSIGTERM");
           break;
           
         default:
-          printf("\n\rSome Signal Detected.");
+          printf("\n\r Signal Unknown");
           break;
      }
-    signal_indication = true;
-    graceful_exit();
+    signal_indicate = true;
+    grace_exit();
 }
 void func(int connfd)
 {
-    int bytes_sent, package_count = 1;
+    int bytes_sent;
     char buff[1024];
     char toClient[50];
     unsigned int priority;
     float temperature_data;
-    // infinite loop for chat
+   
     while(1) 
     {
 	if(mq_receive(mqd, buff, sizeof(float), &priority) == -1)
@@ -84,7 +84,7 @@ void func(int connfd)
 	memcpy(&temperature_data, buff, sizeof(float));
 	
 	sprintf(toClient, "Temperature = %0.2lf", temperature_data);
-	if(signal_indication)
+	if(signal_indicate)
 	{
 	    break;
 	}
@@ -94,7 +94,7 @@ void func(int connfd)
 	    printf("\n\rError in sending bytes.");
 	    return;
 	}
-	package_count++;
+	
     }
 }
 
@@ -107,7 +107,7 @@ int main()
     if (rs == SIG_ERR) 
     {
         printf("\n\rError in registering SIG_ERR.");
-        graceful_exit();
+        grace_exit();
         return -1;
     }
 
@@ -115,7 +115,7 @@ int main()
     if (rs == SIG_ERR) 
     {
         printf("\n\rError in registering SIGTERM.");
-        graceful_exit();
+        grace_exit();
         return -1;
     }
     
@@ -134,7 +134,7 @@ int main()
     if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &(int){1}, sizeof(int)) == -1)
     {
         printf("\n\rError in setting up socket options. Error: %s", strerror(errno));
-        graceful_exit(); 
+        grace_exit(); 
         return -1;
     }
     bzero(&servaddr, sizeof(servaddr));
@@ -152,7 +152,7 @@ int main()
     }
     else
     {
-	printf("Socket successfully binded..\n");
+	printf("Socket successfully binded\n");
     }
     // Now server is ready to listen and verification
     if ((listen(sockfd, 5)) != 0) 
@@ -169,10 +169,10 @@ int main()
     mqd = mq_open("/sendmq", O_RDWR);
     if(mqd == -1)
     {
-        printf("\n\rError in opening the message queue. Error: %s", strerror(errno));
+        printf("\n\rError in message queue. Error: %s", strerror(errno));
     }
     // Accept the data packet from client and verification
-    while(signal_indication == false)
+    while(signal_indicate == false)
     {
         connfd = accept(sockfd, (SA*)&cli, (socklen_t*)&len);
         if (connfd < 0) 
@@ -182,7 +182,7 @@ int main()
         }
         else
         {
-	    printf("server accept the client...\n");
+	    printf("server accept the client\n");
         }
     // Function for chatting between client and server
         func(connfd);
@@ -190,6 +190,6 @@ int main()
     // After chatting close the socket    
     close(sockfd);
     close(connfd);
-    printf("\n\rConnection closed...");
+    printf("\n\rConnection closed");
     return 0;
 }
