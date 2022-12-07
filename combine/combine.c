@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <linux/i2c-dev.h>
+
 int enable_i2c_bus_for_both_devices(){
 	int file;
 	char *bus = "/dev/i2c-1";
@@ -50,7 +51,7 @@ void read_tmp(struct mq_attr attr, mqd_t mqd, int file)
 	printf("temperature in celsius %dC\n", final_temp ); 
 
 	memcpy(tmp_buf, &final_temp, sizeof(int));
-
+	
 	if(mq_send(mqd,tmp_buf,sizeof(int),1) == -1)
 	{
 		printf("\n\rError in sending data via message 	queue. Error: %s", strerror(errno));
@@ -160,11 +161,11 @@ int main()
         	printf("\n\rError in creating a message queue. Error: %s", strerror(errno));
     	}
     	int file = enable_i2c_bus_for_both_devices();
-    	int i = 20;
-	while(i--)
-	{
+    	//int i = 20;
+	//while(i--)
+	//{
 		read_tmp(attr,mqd,file);
-		read_bme(attr,mqd,file);
-	}
+		//read_bme(attr,mqd,file);
+	//}
 	
 }
