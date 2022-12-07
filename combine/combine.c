@@ -1,12 +1,31 @@
-#include<stdio.h>
-#include<stdlib.h>
+#include <stdio.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <mqueue.h>
+#include <errno.h>
+#include <signal.h>
 #include<linux/i2c-dev.h>
-#include<sys/ioctl.h>
-#include<fcntl.h>
-#include<unistd.h>
-
 void read_tmp()
 {
+
+char tmp_buf[20];
+mqd_t mqd;
+struct mq_attr attr;
+
+mqd = mq_open("/sendmq", O_CREAT | O_RDWR, S_IRWXU, &attr);
+    if(mqd == (mqd_t)-1)
+    {
+        printf("\n\rError in creating a message queue. Error: %s", strerror(errno));
+    }
 int file;
 	char *bus = "/dev/i2c-1";
 
@@ -15,8 +34,6 @@ int file;
 		printf("error to read bus\n");
 		exit(1);
 	}
-	
-	
 	ioctl(file, I2C_SLAVE, 0x48);
 
 
@@ -45,10 +62,28 @@ int file;
 	final_temp = temp * 0.0625; 
 	
 	printf("temperature in celsius %dC\n", final_temp ); 
+	
+	memcpy(tmp_buf, &final_temp, sizeof(int));
+	
+	if(mq_send(mqd,tmp_buf,sizeof(int),1) == -1)
+	{
+		printf("\n\rError in sending data via message 	queue. Error: %s", strerror(errno));
+    	}	
+	
+	
 }
 
 void read_bme()
 {
+struct mq_attr attr;
+
+	char bme_buf[20];
+	mqd_t mqd;
+	mqd = mq_open("/sendmq", O_CREAT | O_RDWR, S_IRWXU, &attr);
+    	if(mqd == (mqd_t)-1)
+    	{
+        printf("\n\rError in creating a message queue. Error: %s", strerror(errno));
+    	}
 	// Create I2C bus
 	int file;
 	char *bus = "/dev/i2c-1";
@@ -140,13 +175,33 @@ void read_bme()
 	var_H = (adc_h - (dig_H4 * 64.0 + dig_H5 / 16384.0 * var_H)) * (dig_H2 / 65536.0 * (1.0 + dig_H6 / 67108864.0 * var_H * (1.0 + dig_H3 / 67108864.0 * var_H)));
 	float humidity = var_H * (1.0 -  dig_H1 * var_H / 524288.0);
 	humidity = humidity > 100.0?100.0:humidity;
+	
 	humidity = humidity < 0.0?0.0:humidity;
+	
 	// Output data to screen
 	printf("Relative Humidity : %.2f RH \n", humidity);
+	
+	memcpy(bme_buf, &humidity, sizeof(float));
+	if(mq_send(mqd,bme_buf,sizeof(float),1)== -1)
+	{
+		printf("\n\rError in sending data via message queue. Error: %s", strerror(errno));
+    	}	
+	
 }
+
+struct mq_attr attr;
+
 int main()
 {
-
+	mqd_t mqd;
+	attr.mq_maxmsg = 10;
+    	attr.mq_msgsize = sizeof(double) + sizeof(double);
+	mqd = mq_open("/sendmq", O_CREAT | O_RDWR, S_IRWXU, &attr);
+    	if(mqd == (mqd_t)-1)
+    	{
+        printf("\n\rError in creating a message queue. Error: %s", strerror(errno));
+    	}
+    	
 while(1)
 {
 	read_tmp();

@@ -1,96 +1,146 @@
+/* 
+ * Author : Swapnil Ghonge
+ * Refernces: 	https://www.geeksforgeeks.org/socket-programming-cc/
+ *		https://beej.us/guide/bgnet/html/#sockaddr_inman
+ *		https://beej.us/guide/bgnet/html/#sockaddr_inman
+ *		https://www.csd.uoc.gr/~hy556/material/tutorials/cs556-3rd-tutorial.pdf
+ *		https://man7.org/linux/man-pages/man2/bind.2.html
+ *		https://www.geeksforgeeks.org/tcp-server-client-implementation-in-c/
+*/
 #include <stdio.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
+#include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <unistd.h> // read(), write(), close()
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <signal.h>
+#include <mqueue.h>
+
 #define MAX 80
 #define PORT 8080
 #define SA struct sockaddr
+#define DEBUG (0)
 
-// Function designed for chat between client and server.
-void func(int connfd)
+
+struct mq_attr attr;
+mqd_t mqd;
+int sockfd, connfd;
+bool signal_indication = false;
+
+void send_data(int connfd)
 {
-	char buff[MAX];
-	int n;
-	// infinite loop for chat
-	for (;;) {
-		bzero(buff, MAX);
-
-		// read the message from client and copy it in buffer
-		read(connfd, buff, sizeof(buff));
-		// print buffer which contains the client contents
-		printf("From client: %s\t To client : ", buff);
-		bzero(buff, MAX);
-		n = 0;
-		// copy server message in the buffer
-		while ((buff[n++] = getchar()) != '\n')
-			;
-
-		// and send that buffer to client
-		write(connfd, buff, sizeof(buff));
-
-		// if msg contains "Exit" then server exit and chat ended.
-		if (strncmp("exit", buff, 4) == 0) {
-			printf("Server Exit...\n");
-			break;
+	int bytes_sent, package_count = 1;
+    	char temp_buff[20];
+    	char bme_buff[20];
+    	char toClient[50];
+    	unsigned int priority;
+    	int temperature_data, humidity_data;
+  
+	    while(1) 
+	    {
+		if(mq_receive(mqd, temp_buff, sizeof(int), &priority) == -1)
+		{
+		    printf("\n\rError in receiving message %s", strerror(errno));
 		}
-	}
-}
+		memcpy(&temperature_data, temp_buff, sizeof(int));
+		
+		if(mq_receive(mqd, bme_buff, sizeof(int), &priority) == -1)
+		{
+		    printf("\n\rError in receiving message %s", strerror(errno));
+		}
+		memcpy(&humidity_data, bme_buff + sizeof(double), sizeof(double));
+	
 
-// Driver function
+		sprintf(toClient, "Temperature = %d and Humidity = %d", temperature_data, humidity_data);
+		
+		bytes_sent = send(connfd, toClient, strlen(toClient) + 1, 0);
+		if(bytes_sent == -1)
+		{
+		    printf("\n\rError in sending bytes.");
+		    return;
+		}
+
+		package_count++;
+    }
+}
 int main()
 {
-	int sockfd, connfd, len;
-	struct sockaddr_in servaddr, cli;
-
-	// socket create and verification
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd == -1) {
-		printf("socket creation failed...\n");
-		exit(0);
-	}
-	else
+	int len;
+    	struct sockaddr_in servaddr, cli;
+    	   
+	    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	    if (sockfd == -1) 
+	    {
+		printf("\n\rsocket creation failed. Error: %s", strerror(errno));
+		return -1;
+	    }
+	    else
+	    {
 		printf("Socket successfully created..\n");
-	bzero(&servaddr, sizeof(servaddr));
+	    }
+	    
+	    if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &(int){1}, sizeof(int)) == -1)
+	    {
+		printf("\n\rError in setting up socket options. Error: %s", strerror(errno));
+		
+		return -1;
+	    }
+	    bzero(&servaddr, sizeof(servaddr));
+	    
+	    
+	    servaddr.sin_family = AF_INET;
+	    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	    servaddr.sin_port = htons(PORT);
 
-	// assign IP, PORT
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	servaddr.sin_port = htons(PORT);
-
-	// Binding newly created socket to given IP and verification
-	if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0) {
-		printf("socket bind failed...\n");
+	    if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0)
+	    {
+		printf("\n\rsocket bind failed. Error: %s", strerror(errno));
 		exit(0);
-	}
-	else
+	    }
+	    else
+	    {
 		printf("Socket successfully binded..\n");
-
-	// Now server is ready to listen and verification
-	if ((listen(sockfd, 5)) != 0) {
-		printf("Listen failed...\n");
+	    }
+	    
+	    if ((listen(sockfd, 5)) != 0) 
+	    {
+		printf("\n\rListen failed. Error: %s", strerror(errno));
 		exit(0);
-	}
-	else
+	    }
+	    else
+	    {
 		printf("Server listening..\n");
-	len = sizeof(cli);
-
-	// Accept the data packet from client and verification
-	connfd = accept(sockfd, (SA*)&cli, (socklen_t*)&len);
-	if (connfd < 0) {
-		printf("server accept failed...\n");
-		exit(0);
-	}
-	else
-		printf("server accept the client...\n");
-
-	// Function for chatting between client and server
-	func(connfd);
-
-	// After chatting close the socket
-	close(sockfd);
+		len = sizeof(cli);
+	    }
+	    
+	    mqd = mq_open("/sendmq", O_RDWR);
+	    if(mqd == -1)
+	    {
+		printf("\n\rError in opening the message queue. Error: %s", strerror(errno));
+	    }
+	    while(signal_indication == false)
+	    {
+		connfd = accept(sockfd, (SA*)&cli, (socklen_t*)&len);
+		if (connfd < 0) 
+		{
+		    printf("\n\rserver accept failed. Error: %s", strerror(errno));
+		    exit(0);
+		}
+		else
+		{
+		    printf("server accept the client...\n");
+		}
+	   
+		send_data(connfd);
+	    }  
+	     
+	    close(sockfd);
+	    close(connfd);
+	    printf("\r\n connection closed");
 }
-
