@@ -70,14 +70,14 @@ static void signal_handler(int signal)
 void func(int connfd)
 {
     int bytes_sent, package_count = 1;
-    char buff[1024];
-    char toClient[50];
+    char buff[sizeof(float) + sizeof(float) + 20] = {0};
+    char toClient[50] = {0};
     unsigned int priority;
     float temperature_data,humidity_data;
     // infinite loop for chat
     while(1) 
     {
-	if(mq_receive(mqd, buff, sizeof(float) + sizeof(float), &priority) == -1)
+	if(mq_receive(mqd, buff, (sizeof(float) + sizeof(float)), &priority) == -1)
 	{
 	    printf("\n\rError in receiving message from the queue. Error: %s", strerror(errno));
 	}

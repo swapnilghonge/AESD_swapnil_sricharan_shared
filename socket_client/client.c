@@ -21,7 +21,7 @@
 
 void func(int sockfd)
 {
-	printf("values");
+    printf("values");
     char buff[200];
     int rv;
     //int n;
@@ -74,22 +74,20 @@ int main(int argc, char *argv[])
     
     printf("Starting ");
     bzero(&servaddr, sizeof(servaddr));
-   printf("to");
+    printf("to");
     // assign IP, PORT
     servaddr.sin_family = AF_INET;
     //storing address of the server
     servaddr.sin_addr.s_addr = inet_addr("10.0.0.184"); 
     // short, network byte order
     servaddr.sin_port = htons(PORT);
-   printf("display");
+    printf("display");
     // connect the client socket to server socket
     connfd = connect(sockfd, (SA*)&servaddr, sizeof(servaddr)); 
     printf("connfd = %d", connfd);
     //else
-    {
-        printf("\n\rconnected to the server.");
-    }
-   printf("sensor");
+    printf("\n\rconnected to the server.");
+    printf("sensor");
     // function for chat
     func(sockfd);
    
