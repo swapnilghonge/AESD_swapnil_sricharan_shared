@@ -70,7 +70,7 @@ static void signal_handler(int signal)
 void func(int connfd)
 {
     int bytes_sent, package_count = 1;
-    char buff[sizeof(double) + sizeof(double)];
+    char buff[1024];
     char toClient[50];
     unsigned int priority;
     float temperature_data;
