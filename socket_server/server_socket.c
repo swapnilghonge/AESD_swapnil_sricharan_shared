@@ -55,7 +55,8 @@ void send_data(int connfd)
 		    printf("\n\rError in receiving message for bme %s", strerror(errno));
 		}
 		memcpy(&humidity_data, bme_buff + sizeof(double), sizeof(double));*/
-	
+		
+		printf("temprature%d", temperature_data);
 
 		sprintf(toClient, "Temperature = %d and Humidity = %d", temperature_data, humidity_data);
 		

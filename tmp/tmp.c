@@ -1,12 +1,37 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<linux/i2c-dev.h>
-#include<sys/ioctl.h>
-#include<fcntl.h>
-#include<unistd.h>
+#include <stdio.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <mqueue.h>
+#include <errno.h>
+#include <signal.h>
+#include <linux/i2c-dev.h>
+
+
+struct mq_attr attr;
+
+typedef union i2c_smbus_data i2c_data;
 
 int main()
 {
+	mqd_t mqd;
+	char sensor_buffer[sizeof(double) + sizeof(double)];
+    	attr.mq_maxmsg = 10;
+    	attr.mq_msgsize = sizeof(double) + sizeof(double);
+    	mqd = mq_open("/sendmq", O_CREAT | O_RDWR, S_IRWXU, &attr);
+    	if(mqd == (mqd_t)-1)
+    	{
+        printf("\n\rError in creating a message queue. Error: %s", 				strerror(errno));
+    	}
+    	
 	int file;
 	char *bus = "/dev/i2c-1";
 
@@ -43,9 +68,13 @@ int main()
 	
 	
 	final_temp = temp * 0.0625; 
+	memcpy(sensor_buffer, &final_temp, sizeof(double));
 	
 	printf("temperature in celsius %dC", final_temp ); 
-	
+	if(mq_send(mqd, sensor_buffer, sizeof(double) + sizeof(double), 1) == -1)
+    	{
+    	    printf("\n\rError in sending data via message queue. Error: %s", strerror(errno));
+    	}
 	return 0;
 
 }

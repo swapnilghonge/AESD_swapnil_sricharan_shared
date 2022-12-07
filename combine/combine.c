@@ -49,7 +49,7 @@ void read_tmp(struct mq_attr attr, mqd_t mqd, int file)
 		
 	final_temp = temp * 0.0625; 
 
-	//printf("temperature in celsius %dC\n", final_temp ); 
+	printf("temperature in celsius %fC\n", final_temp ); 
 
 	sprintf(tmp_buf," tmp %f" ,final_temp);
 	
