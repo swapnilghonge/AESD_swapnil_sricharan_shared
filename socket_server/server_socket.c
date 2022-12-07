@@ -70,7 +70,7 @@ static void signal_handler(int signal)
 void func(int connfd)
 {
     int bytes_sent, package_count = 1;
-    char buff[sizeof(int)] = {0};
+    char buff[50] = {0};
     char toClient[50] = {0};
     unsigned int priority;
     int temperature_data;//,humidity_data;
@@ -80,7 +80,9 @@ void func(int connfd)
 	{
 	    printf("\n\rError in receiving message from the queue. Error: %s", strerror(errno));
 	}
-	printf("\r\n Message Received");
+	else{
+		printf("\r\n Message Received");
+	}
 	memcpy(&temperature_data, buff, sizeof(int));
 	//memcpy(&humidity_data, buff + sizeof(double), sizeof(double));
 	

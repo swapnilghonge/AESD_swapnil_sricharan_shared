@@ -118,8 +118,10 @@ int main()
     	{
         printf("\n\rError in creating a message queue. Error: %s", strerror(errno));
     	}
-while(1)
+int i = 10;
+while(i--)
 {
+	memset(sensor_buffer,0,sizeof(sensor_buffer));
 	/*tmp102*/
 	ioctl(file, I2C_SLAVE, 0x48);
 
@@ -149,7 +151,6 @@ while(1)
     	{
     	    printf("\n\rError in sending data via message queue. Error: %s", strerror(errno));
     	}
-    	memset(sensor_buffer,0,sizeof(sensor_buffer));
     	sleep(100);
 }
 
