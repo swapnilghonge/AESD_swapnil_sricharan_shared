@@ -67,80 +67,72 @@ void send_data(int connfd)
 		}
 
 		package_count++;
-    }
+    	    }
 }
 int main()
 {
 	int len;
     	struct sockaddr_in servaddr, cli;
     	   
-	    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	    if (sockfd == -1) 
-	    {
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd == -1) 
+	{
 		printf("\n\rsocket creation failed. Error: %s", strerror(errno));
 		return -1;
-	    }
-	    else
-	    {
+	}
+	else
+	{
 		printf("Socket successfully created..\n");
-	    }
-	    
-	    if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &(int){1}, sizeof(int)) == -1)
-	    {
+	} 
+	if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &(int){1}, sizeof(int)) == -1)
+	{
 		printf("\n\rError in setting up socket options. Error: %s", strerror(errno));
-		
 		return -1;
-	    }
-	    bzero(&servaddr, sizeof(servaddr));
-	    
-	    
-	    servaddr.sin_family = AF_INET;
-	    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	    servaddr.sin_port = htons(PORT);
-
-	    if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0)
-	    {
-		printf("\n\rsocket bind failed. Error: %s", strerror(errno));
-		exit(0);
-	    }
-	    else
-	    {
+	}
+	bzero(&servaddr, sizeof(servaddr));    
+	servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	servaddr.sin_port = htons(PORT);
+	if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0)
+	{
+	printf("\n\rsocket bind failed. Error: %s", strerror(errno));
+	exit(0);
+	}
+	else
+	{
 		printf("Socket successfully binded..\n");
-	    }
-	    
-	    if ((listen(sockfd, 5)) != 0) 
-	    {
+	}
+
+	if ((listen(sockfd, 5)) != 0) 
+	{
 		printf("\n\rListen failed. Error: %s", strerror(errno));
 		exit(0);
-	    }
-	    else
-	    {
+	}
+	else
+	{
 		printf("Server listening..\n");
 		len = sizeof(cli);
-	    }
-	    
-	    mqd = mq_open("/sendmq", O_RDWR);
-	    if(mqd == -1)
-	    {
+	}
+	mqd = mq_open("/sendmq", O_RDWR);
+	if(mqd == -1)
+	{
 		printf("\n\rError in opening the message queue. Error: %s", strerror(errno));
-	    }
-	    while(signal_indication == false)
-	    {
+	}
+	while(signal_indication == false)
+	{
 		connfd = accept(sockfd, (SA*)&cli, (socklen_t*)&len);
 		if (connfd < 0) 
 		{
-		    printf("\n\rserver accept failed. Error: %s", strerror(errno));
-		    exit(0);
+			printf("\n\rserver accept failed. Error: %s", strerror(errno));
+			exit(0);
 		}
 		else
 		{
-		    printf("server accept the client...\n");
+	    		printf("server accept the client...\n");
 		}
-	   
 		send_data(connfd);
-	    }  
-	     
-	    close(sockfd);
-	    close(connfd);
-	    printf("\r\n connection closed");
+	}
+	close(sockfd);
+	close(connfd);
+	printf("\r\n connection closed");
 }
