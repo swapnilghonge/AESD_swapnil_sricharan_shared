@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
     servaddr.sin_port = htons(PORT);
    printf("debug 3");
     // connect the client socket to server socket
-    connfd = connect(sockfd, (SA*)&servaddr, sizeof(servaddr)) != 0) 
+    connfd = connect(sockfd, (SA*)&servaddr, sizeof(servaddr)) != 0); 
     
     if (connfd == -1)
     {
