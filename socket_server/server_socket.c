@@ -36,11 +36,11 @@ bool signal_indication = false;
 void send_data(int connfd)
 {
 	int bytes_sent, package_count = 1;
-    	char temp_buff[20] ={0};
-    	//char bme_buff[20];
+    	char temp_buff[20];
+    	char bme_buff[20];
     	char toClient[50];
     	unsigned int priority;
-    	int temperature_data, humidity_data=0;
+    	int temperature_data, humidity_data;
   
 	    while(1) 
 	    {
@@ -49,8 +49,13 @@ void send_data(int connfd)
 		    printf("\n\rError in receiving message for tmp %s", strerror(errno));
 		}
 		memcpy(&temperature_data, temp_buff, sizeof(int));
-				
-		printf("temprature%d", temperature_data);
+		
+		if(mq_receive(mqd, bme_buff, sizeof(int), &priority) == -1)
+		{
+		    printf("\n\rError in receiving message for bme %s", strerror(errno));
+		}
+		memcpy(&humidity_data, bme_buff + sizeof(double), sizeof(double));
+	
 
 		sprintf(toClient, "Temperature = %d and Humidity = %d", temperature_data, humidity_data);
 		
