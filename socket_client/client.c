@@ -21,17 +21,19 @@
 
 void func(int sockfd)
 {
-    char buff[42];
+	printf("debug 5");
+    char buff[100];
     int rv;
     //int n;
     while(1) 
     {
-        while((rv = recv(sockfd, buff, sizeof(buff), 0)) != 41);
+        while((rv = recv(sockfd, buff, sizeof(buff), 0)) != 100);
         if(rv == -1)
         {
             printf("\n\rError: %s", strerror(errno));
             return;
         }
+        printf("debug 6");
         printf("\n\r%s", buff);
         printf("\n\r%d bytes were received", rv);
         if ((strncmp(buff, "exit", 4)) == 0) 
@@ -83,18 +85,18 @@ int main(int argc, char *argv[])
     // connect the client socket to server socket
     connfd = connect(sockfd, (SA*)&servaddr, sizeof(servaddr)); 
     printf("connfd = %d", connfd);
-    if (connfd == -1)
+    /*if (connfd == -1)
     {
         printf("\n\rconnection with the server failed. Error: %s", strerror(errno));
         //printf("connfd = %d", connfd);
         close(sockfd);
         return -1;
-    }
-    else
+    }*/
+    //else
     {
         printf("\n\rconnected to the server.");
     }
-   
+   printf("debug 4");
     // function for chat
     func(sockfd);
    
