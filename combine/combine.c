@@ -166,7 +166,7 @@ int main()
 		exit(1);
 	}
 	mqd_t mqd;
-    	char sensor_buffer[sizeof(double) + sizeof(double)];
+    	char sensor_buffer[1024];
     	attr.mq_maxmsg = 10;
     	attr.mq_msgsize = sizeof(double) + sizeof(double);
     	mqd = mq_open("/sendmq", O_CREAT | O_RDWR, S_IRWXU, &attr);
