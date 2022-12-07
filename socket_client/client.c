@@ -82,11 +82,11 @@ int main(int argc, char *argv[])
    printf("debug 3");
     // connect the client socket to server socket
     connfd = connect(sockfd, (SA*)&servaddr, sizeof(servaddr)); 
-    
+    printf("connfd = %d", connfd);
     if (connfd == -1)
     {
         printf("\n\rconnection with the server failed. Error: %s", strerror(errno));
-        printf("connfd = %d", connfd);
+        //printf("connfd = %d", connfd);
         close(sockfd);
         return -1;
     }
