@@ -117,7 +117,6 @@ void read_bme()
 
 int main()
 {
-	int i = 20;
 	int file;
 	char *bus = "/dev/i2c-1";
 	if((file = open(bus, O_RDWR)) < 0) 
@@ -135,7 +134,7 @@ int main()
     	{
         printf("\n\rError in creating a message queue. Error: %s", strerror(errno));
     	}
-while(i--)
+while(1)
 {
 	read_bme();
 	ioctl(file, I2C_SLAVE, 0x48);
