@@ -52,7 +52,7 @@ int main()
 	
 	
 
-	int temp, final_temp;
+	float temp, final_temp;
 	
 	unsigned char read_data[2] = {0};
 	
@@ -69,7 +69,7 @@ int main()
 	
 	final_temp = temp * 0.0625; 
 	memcpy(sensor_buffer, &final_temp, sizeof(double));
-	
+	printf("message queue %s", sensor_buffer);
 	printf("temperature in celsius %dC", final_temp ); 
 	if(mq_send(mqd, sensor_buffer, sizeof(double) + sizeof(double), 1) == -1)
     	{
