@@ -46,13 +46,13 @@ void send_data(int connfd)
 	    {
 		if(mq_receive(mqd, temp_buff, sizeof(int), &priority) == -1)
 		{
-		    printf("\n\rError in receiving message %s", strerror(errno));
+		    printf("\n\rError in receiving message for tmp %s", strerror(errno));
 		}
 		memcpy(&temperature_data, temp_buff, sizeof(int));
 		
 		if(mq_receive(mqd, bme_buff, sizeof(int), &priority) == -1)
 		{
-		    printf("\n\rError in receiving message %s", strerror(errno));
+		    printf("\n\rError in receiving message for bme %s", strerror(errno));
 		}
 		memcpy(&humidity_data, bme_buff + sizeof(double), sizeof(double));
 	

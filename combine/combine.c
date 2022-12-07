@@ -28,7 +28,7 @@ int enable_i2c_bus_for_both_devices(){
 }
 void read_tmp(struct mq_attr attr, mqd_t mqd, int file)
 {
-	char tmp_buf[20];
+	char tmp_buf[200];
 	char config[1] = {0};
 	config[0] = 0x00;
 	write(file, config, 1);
@@ -58,7 +58,7 @@ void read_tmp(struct mq_attr attr, mqd_t mqd, int file)
 }
 void read_bme(struct mq_attr attr, mqd_t mqd, int file)
 {
-	char bme_buf[20];
+	char bme_buf[200];
 	char reg[1] = {0x88};
 	write(file, reg, 1);
 	char b1[24] = {0};
@@ -160,7 +160,8 @@ int main()
         	printf("\n\rError in creating a message queue. Error: %s", strerror(errno));
     	}
     	int file = enable_i2c_bus_for_both_devices();
-	while(1)
+    	int i = 20;
+	while(i--)
 	{
 		read_tmp(attr,mqd,file);
 		read_bme(attr,mqd,file);
