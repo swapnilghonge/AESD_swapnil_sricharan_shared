@@ -51,7 +51,7 @@ int file;
 	
 	final_temp = temp * 0.0625; 
 	
-	printf("temperature in celsius %fC\n", final_temp ); 
+	//printf("temperature in celsius %fC\n", final_temp ); 
 }
 
 void read_bme()
@@ -149,7 +149,7 @@ void read_bme()
 	humidity = humidity > 100.0?100.0:humidity;
 	humidity = humidity < 0.0?0.0:humidity;
 	// Output data to screen
-	printf("Relative Humidity : %.2f RH \n", humidity);
+	//printf("Relative Humidity : %.2f RH \n", humidity);
 }
 int main(int argc , char **argv)
 {
