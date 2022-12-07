@@ -35,8 +35,8 @@ int main()
     	{
         printf("\n\rError in creating a message queue. Error: %s", strerror(errno));
     	}
-while(1)
-{
+//while(1)
+//{
 	/*tmp102*/
 	ioctl(file, I2C_SLAVE, 0x48);
 
@@ -155,12 +155,13 @@ while(1)
 	
 	memcpy(sensor_buffer, &final_temp, sizeof(float));
 	memcpy(sensor_buffer + sizeof(float), &humidity, sizeof(float));
+	printf("sensor_buffer value = %s",sensor_buffer);
 	if(mq_send(mqd, sensor_buffer, (sizeof(float)+sizeof(float)), 1) == -1)
     	{
     	    printf("\n\rError in sending data via message queue. Error: %s", strerror(errno));
     	}
-    	sleep(1);
-}
+    	sleep(100);
+//}
 
 
 }

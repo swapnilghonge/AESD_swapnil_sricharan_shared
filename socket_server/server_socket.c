@@ -75,8 +75,8 @@ void func(int connfd)
     unsigned int priority;
     float temperature_data,humidity_data;
     // infinite loop for chat
-    while(1) 
-    {
+    //while(1) 
+    //{
 	if(mq_receive(mqd, buff, (sizeof(float) + sizeof(float)), &priority) == -1)
 	{
 	    printf("\n\rError in receiving message from the queue. Error: %s", strerror(errno));
@@ -86,10 +86,10 @@ void func(int connfd)
 	
 	sprintf(toClient, "Temperature = %0.2lf", temperature_data);
 	sprintf(toClient, "Humidity = %0.2lf", humidity_data);
-	if(signal_indication)
+	/*if(signal_indication)
 	{
 	    break;
-	}
+	}*/
 	bytes_sent = send(connfd, toClient, strlen(toClient) + 1, 0);
 	if(bytes_sent == -1)
 	{
@@ -97,7 +97,7 @@ void func(int connfd)
 	    return;
 	}
 	package_count++;
-    }
+    //}
 }
 
 int main()
