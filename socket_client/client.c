@@ -45,7 +45,7 @@ void func(int sockfd)
    
 int main(int argc, char *argv[])
 {
-    int sockfd;
+    int sockfd, connfd;
     struct sockaddr_in servaddr;
     char IP[20];
     
@@ -81,9 +81,12 @@ int main(int argc, char *argv[])
     servaddr.sin_port = htons(PORT);
    printf("debug 3");
     // connect the client socket to server socket
-    if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr)) != 0) 
+    connfd = connect(sockfd, (SA*)&servaddr, sizeof(servaddr)) != 0) 
+    
+    if (connfd == -1)
     {
         printf("\n\rconnection with the server failed. Error: %s", strerror(errno));
+        printf("connfd = %d", connfd);
         close(sockfd);
         return -1;
     }
