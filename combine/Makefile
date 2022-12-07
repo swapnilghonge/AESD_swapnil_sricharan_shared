@@ -7,10 +7,16 @@ endif
 ifeq ($(LDFLAGS),)
 	LDFLAGS = -pthread -lrt
 endif
-all:sensors_combined
+all:combine
 
 clean:
-	rm -f *.o sensors_combined *.elf *.map
+	rm -f *.o combine *.elf *.map
 
-sensors_combined: sensors_combined.o
+combine: combine.o
+	#$(CC) $(CFLAGS)  -c -o aesdsocket.o aesdsocket.c
+	#$(CC) $(CFLAGS) -I/ aesdsocket.o -o aesdsocket
 	$(CC) $(CFLAGS) $^ -o $@ $(INCLUDES) $(LDFLAGS)
+	
+
+	
+

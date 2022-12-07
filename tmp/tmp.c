@@ -23,14 +23,25 @@ int main()
 	char config[1] = {0};
 	config[0] = 0x00;
 	write(file, config, 1);
+	sleep(1);
+	
+	
+
 	int temp, final_temp;
+	
 	unsigned char read_data[2] = {0};
-	if(read(file, read_data, 2)!=2){
+	
+	
+	if(read(file, read_data, 2)!=2)
+	{
 		printf("Error in dataread\n");
 	}
-	else{
+	else
+	{
 		temp = ((read_data[0] << 4 ) | ( read_data[1] >> 4)); 
 	}
+	
+	
 	final_temp = temp * 0.0625; 
 	
 	printf("temperature in celsius %dC", final_temp ); 
