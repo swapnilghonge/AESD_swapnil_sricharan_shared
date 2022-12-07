@@ -16,6 +16,48 @@ struct mq_attr attr;
 
 typedef union i2c_smbus_data i2c_data;
 
+void read_tmp()
+{
+int file;
+	char *bus = "/dev/i2c-1";
+
+	if((file = open(bus, O_RDWR)) < 0)
+	{
+		printf("error to read bus\n");
+		exit(1);
+	}
+	
+	
+	ioctl(file, I2C_SLAVE, 0x48);
+
+
+	char config[1] = {0};
+	config[0] = 0x00;
+	write(file, config, 1);
+	sleep(1);
+	
+	
+
+	int temp, final_temp;
+	
+	unsigned char read_data[2] = {0};
+	
+	
+	if(read(file, read_data, 2)!=2)
+	{
+		printf("Error in dataread\n");
+	}
+	else
+	{
+		temp = ((read_data[0] << 4 ) | ( read_data[1] >> 4)); 
+	}
+	
+	
+	final_temp = temp * 0.0625; 
+	
+	printf("temperature in celsius %dC\n", final_temp ); 
+}
+
 void read_bme()
 {
 	// Create I2C bus
@@ -136,7 +178,6 @@ int main()
     	}
 while(1)
 {
-	read_bme();
 	ioctl(file, I2C_SLAVE, 0x48);
 
 
@@ -145,6 +186,8 @@ while(1)
 	write(file, config, 1);
 	sleep(1);
 	
+	
+
 	float temp, final_temp;
 	
 	unsigned char read_data[2] = {0};

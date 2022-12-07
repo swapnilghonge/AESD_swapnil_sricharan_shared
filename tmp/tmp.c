@@ -1,23 +1,12 @@
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <string.h>
-#include <linux/i2c-dev.h>
-#include <linux/i2c.h>
-#include <unistd.h>
-#include <mqueue.h>
-
-
-struct mq_attr attr;
+#include<stdio.h>
+#include<stdlib.h>
+#include<linux/i2c-dev.h>
+#include<sys/ioctl.h>
+#include<fcntl.h>
+#include<unistd.h>
 
 int main()
 {
-	int temp, final_temp;
 	int file;
 	char *bus = "/dev/i2c-1";
 
@@ -26,18 +15,8 @@ int main()
 		printf("error to read bus\n");
 		exit(1);
 	}
-	mqd_t mqd;
-    	char sensor_buffer[sizeof(int)];
-    	attr.mq_maxmsg = 10;
-    	attr.mq_msgsize = sizeof(int);
-    	mqd = mq_open("/sendmq", O_CREAT | O_RDWR, S_IRWXU, &attr);
-    	if(mqd == (mqd_t)-1)
-    	{
-        printf("\n\rError in creating a message queue. Error: %s", strerror(errno));
-    	}
-    	
-	while(1)
-	{
+	
+	
 	ioctl(file, I2C_SLAVE, 0x48);
 
 
@@ -45,8 +24,10 @@ int main()
 	config[0] = 0x00;
 	write(file, config, 1);
 	sleep(1);
-
 	
+	
+
+	int temp, final_temp;
 	
 	unsigned char read_data[2] = {0};
 	
@@ -64,14 +45,7 @@ int main()
 	final_temp = temp * 0.0625; 
 	
 	printf("temperature in celsius %dC", final_temp ); 
-	}
 	
-    	memcpy(sensor_buffer, &final_temp, sizeof(int));
-    	
-	if(mq_send(mqd, sensor_buffer, sizeof(int), 1) == -1)
-    	{
-    	    printf("\n\rError in sending data via message queue. Error: %s", strerror(errno));
-    	}
-    	sleep(1);
-	
+	return 0;
+
 }
