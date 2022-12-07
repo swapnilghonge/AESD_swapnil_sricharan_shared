@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
     // assign IP, PORT
     servaddr.sin_family = AF_INET;
     //storing address of the server
-    servaddr.sin_addr.s_addr = inet_addr(IP); 
+    servaddr.sin_addr.s_addr = inet_addr("10.0.0.184"); 
     // short, network byte order
     servaddr.sin_port = htons(PORT);
    printf("debug 3");
