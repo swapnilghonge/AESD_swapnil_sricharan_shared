@@ -69,15 +69,17 @@ int main(int argc, char *argv[])
     {
         printf("\n\rSocket creation successful!!");
     }
+    
+    printf("debug 1");
     bzero(&servaddr, sizeof(servaddr));
-   
+   printf("debug 2");
     // assign IP, PORT
     servaddr.sin_family = AF_INET;
     //storing address of the server
     servaddr.sin_addr.s_addr = inet_addr(IP); 
     // short, network byte order
     servaddr.sin_port = htons(PORT);
-   
+   printf("debug 3");
     // connect the client socket to server socket
     if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr)) != 0) 
     {
