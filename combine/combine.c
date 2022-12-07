@@ -117,7 +117,7 @@ void read_bme()
 
 int main()
 {
-	read_bme();
+	
 	int file;
 	char *bus = "/dev/i2c-1";
 	if((file = open(bus, O_RDWR)) < 0) 
@@ -137,6 +137,7 @@ int main()
     	}
 while(1)
 {
+read_bme();
 	ioctl(file, I2C_SLAVE, 0x48);
 
 
