@@ -1,17 +1,21 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<linux/i2c-dev.h>
-#include<sys/ioctl.h>
-#include<fcntl.h>
-#include<unistd.h>
+#include <sys/ioctl.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <string.h>
+#include <linux/i2c-dev.h>
+#include <linux/i2c.h>
 #include <unistd.h>
-#include <math.h>
-#include <stdbool.h>
 #include <mqueue.h>
 
-float humidity=0,final_temp=0;
 struct mq_attr attr;
+
+typedef union i2c_smbus_data i2c_data;
+
 void read_tmp()
 {
 int file;
@@ -34,7 +38,7 @@ int file;
 	
 	
 
-	float temp;
+	int temp, final_temp;
 	
 	unsigned char read_data[2] = {0};
 	
@@ -51,7 +55,7 @@ int file;
 	
 	final_temp = temp * 0.0625; 
 	
-	//printf("temperature in celsius %fC\n", final_temp ); 
+	printf("temperature in celsius %dC\n", final_temp ); 
 }
 
 void read_bme()
@@ -145,36 +149,67 @@ void read_bme()
 	// Humidity offset calculations
 	float var_H = (((float)t_fine) - 76800.0);
 	var_H = (adc_h - (dig_H4 * 64.0 + dig_H5 / 16384.0 * var_H)) * (dig_H2 / 65536.0 * (1.0 + dig_H6 / 67108864.0 * var_H * (1.0 + dig_H3 / 67108864.0 * var_H)));
-	humidity = var_H * (1.0 -  dig_H1 * var_H / 524288.0);
+	float humidity = var_H * (1.0 -  dig_H1 * var_H / 524288.0);
 	humidity = humidity > 100.0?100.0:humidity;
 	humidity = humidity < 0.0?0.0:humidity;
 	// Output data to screen
-	//printf("Relative Humidity : %.2f RH \n", humidity);
+	printf("Relative Humidity : %.2f RH \n", humidity);
 }
-int main(int argc , char **argv)
+int main()
 {
-mqd_t mqd;
-    char buff[sizeof(float) + sizeof(float) +50]; //buffer to send data on the message queue
-    attr.mq_maxmsg = 10;   //Maximum number of messages on the queue
-    attr.mq_msgsize = sizeof(int) + sizeof(int) + sizeof(int) +13;
-    
-    mqd = mq_open("/sendmq", O_CREAT | O_RDWR, S_IRWXU, &attr); //open a named message queue
-    
-    if(mqd == (mqd_t)-1) {
-        printf("\nError: Message queue creat failed");
-    }
-
-
+	int file;
+	char *bus = "/dev/i2c-1";
+	if((file = open(bus, O_RDWR)) < 0) 
+	{
+		printf("Failed to open the bus. \n");
+		printf("value of file %d",file);
+		exit(1);
+	}
+	mqd_t mqd;
+    	char sensor_buffer[sizeof(double) + sizeof(double)];
+    	attr.mq_maxmsg = 10;
+    	attr.mq_msgsize = sizeof(double) + sizeof(double);
+    	mqd = mq_open("/sendmq", O_CREAT | O_RDWR, S_IRWXU, &attr);
+    	if(mqd == (mqd_t)-1)
+    	{
+        printf("\n\rError in creating a message queue. Error: %s", strerror(errno));
+    	}
 while(1)
 {
-	read_tmp();
-	read_bme();
-	//snprintf(buff, sizeof(buff), "roll%d Temp%d Tyre%d", (int)roll, (int)temp, (int)station_press);
-	snprintf(buff, sizeof(buff), "temperature %f Humidity %f" , final_temp, humidity);
-	if (mq_send(mqd, buff, sizeof(int) + sizeof(int) + sizeof(int) + 13, 1) == -1) {
-    		perror("\nmq_send");
+	ioctl(file, I2C_SLAVE, 0x48);
+
+
+	char config[1] = {0};
+	config[0] = 0x00;
+	write(file, config, 1);
+	sleep(1);
+	
+	
+
+	float temp, final_temp;
+	
+	unsigned char read_data[2] = {0};
+	
+	
+	if(read(file, read_data, 2)!=2)
+	{
+		printf("Error in dataread\n");
+	}
+	else
+	{
+		temp = ((read_data[0] << 4 ) | ( read_data[1] >> 4)); 
+	}
+
+	final_temp = temp * 0.0625; 
+	
+	printf("temperature in celsius %f C\n", final_temp ); 
+	
+	memcpy(sensor_buffer, &final_temp, sizeof(float));
+	if(mq_send(mqd, sensor_buffer, sizeof(float) + sizeof(float), 1) == -1)
+    	{
+    	    printf("\n\rError in sending data via message queue. Error: %s", strerror(errno));
     	}
-    	sleep(2);
+    	sleep(1);
 }
 
 

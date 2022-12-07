@@ -3,65 +3,96 @@
  *Reference: https://www.geeksforgeeks.org/tcp-server-client-implementation-in-c/
 */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <unistd.h>
-#include <string.h>
-#include <netinet/in.h>
 #include <netdb.h>
-#include <arpa/inet.h>
-#include <sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
-#include <syslog.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <errno.h>
 
+//macros
 #define MAX 80
 #define PORT 8080
 #define SA struct sockaddr
-#define IP_ADDRESS_SIZE 20
-char datafromserver[1000];
+
+void func(int sockfd)
+{
+    char buff[42];
+    int rv;
+    //int n;
+    while(1) 
+    {
+        while((rv = recv(sockfd, buff, sizeof(buff), 0)) != 41);
+        if(rv == -1)
+        {
+            printf("\n\rError: %s", strerror(errno));
+            return;
+        }
+        printf("\n\r%s", buff);
+        printf("\n\r%d bytes were received", rv);
+        if ((strncmp(buff, "exit", 4)) == 0) 
+        {
+            printf("Client Exit...\n");
+            break;
+        }
+        //usleep(500000);
+    }
+}
    
 int main(int argc, char *argv[])
 {
-   int socketfd = 0;
-	int socketconnectfd = 0;
-	openlog("Socket Application client",LOG_PID,LOG_USER);
-	printf("Welcome to Socket Application - CLIENT\n");
-	char server_ipaddress[IP_ADDRESS_SIZE] = {0};
-	memcpy(server_ipaddress, argv[1], strlen(argv[1]));
-	/*Socket address structure values*/
-	struct sockaddr_in server_address;
-	server_address.sin_family = AF_INET;
-	server_address.sin_port = htons(PORT);
-	syslog(LOG_DEBUG, "Client started");
-	socketfd = socket(AF_INET, SOCK_STREAM, 0);
-	if(socketfd < 0)
-	{
-		syslog(LOG_DEBUG, "ERROR: In creating Socket file descriptor");
-		exit(0);
-	}
-
-	if((inet_pton(AF_INET, server_ipaddress, &server_address.sin_addr)) < 0)
-	{
-		syslog(LOG_DEBUG, "ERROR: In converting IPV4 from text to binary form");
-		exit(0);
-	}
-	
-	socketconnectfd =  connect(socketfd, (struct sockaddr *)&server_address,sizeof(server_address));
-	if(socketconnectfd < 0)
-	{
-		syslog(LOG_DEBUG, "ERROR: In connecting to Server");
-		exit(0);
-	}
-	
-	syslog(LOG_DEBUG, "connected to Server");
-	printf("connected to Server\n");
-	while (1)
-	{
-	       read(socketfd,datafromserver,sizeof(datafromserver));
-	       
-
-	}
-	return 0;
+    int sockfd;
+    struct sockaddr_in servaddr;
+    char IP[20];
+    
+    if(argc != 2)
+    {
+        printf("\n\rPlease enter correct number of arguments with IP Address of the server.");
+        return -1;
+    }
+    printf("\n\rConnecting to the server.");
+    strcpy(IP, argv[1]);
+    printf("\n\rContents of IP array = %s", IP);
+    // socket creation
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    // socket verification
+    if (sockfd == -1) 
+    {
+        printf("\n\rSocket creation failed!!Error: %s", strerror(errno));
+        return -1;
+    }
+    else
+    {
+        printf("\n\rSocket creation successful!!");
+    }
+    bzero(&servaddr, sizeof(servaddr));
+   
+    // assign IP, PORT
+    servaddr.sin_family = AF_INET;
+    //storing address of the server
+    servaddr.sin_addr.s_addr = inet_addr(IP); 
+    // short, network byte order
+    servaddr.sin_port = htons(PORT);
+   
+    // connect the client socket to server socket
+    if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr)) != 0) 
+    {
+        printf("\n\rconnection with the server failed. Error: %s", strerror(errno));
+        close(sockfd);
+        return -1;
+    }
+    else
+    {
+        printf("\n\rconnected to the server.");
+    }
+   
+    // function for chat
+    func(sockfd);
+   
+    // close the socket
+    close(sockfd);
 }
-
